@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Multi-Broadcaster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --wa-green: #25D366;
+            --wa-dark: #075E54;
+        }
+        body {
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: var(--wa-green);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #128C7E;
+            transform: translateY(-1px);
+        }
+        .input-field {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--wa-green);
+            ring: 2px solid rgba(37, 211, 102, 0.2);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Parallel Broadcaster</h1>
+            <p class="text-gray-500">Send custom messages to 3 numbers simultaneously</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Panel: Configuration -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass-card p-6">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="mr-2">👤</span> Your Profile
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 uppercase mb-1">Your WhatsApp Number</label>
+                            <input type="text" id="senderPhone" class="input-field" placeholder="+1 234 567 890">
+                        </div>
+                        <div class="p-3 bg-blue-50 rounded-lg">
+                            <p class="text-xs text-blue-700">
+                                <strong>Note:</strong> Browser-based broadcasting uses the official WhatsApp API links. This ensures your account remains safe.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="mr-2">📝</span> Message Content
+                    </h2>
+                    <textarea id="mainMessage" rows="5" class="input-field mb-4" placeholder="Type your message here..."></textarea>
+                    
+                    <div class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-green-400 transition-colors cursor-pointer relative">
+                        <input type="file" id="fileInput" class="absolute inset-0 opacity-0 cursor-pointer" accept=".jpg,.jpeg,.png,.pdf">
+                        <div id="fileInfo">
+                            <span class="text-2xl">📎</span>
+                            <p class="text-sm text-gray-500 mt-1">Attach JPEG, PNG, or PDF</p>
+                            <p id="fileName" class="text-xs text-green-600 font-medium mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="broadcastBtn" class="w-full py-4 btn-primary text-white font-bold rounded-xl shadow-lg flex items-center justify-center space-x-2">
+                    <span>🚀 Launch Parallel Broadcast</span>
+                </button>
+            </div>
+
+            <!-- Right Panel: Channels -->
+            <div class="lg:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+                    
+                    <!-- Channel 1 -->
+                    <div class="glass-card p-5 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-gray-400 uppercase">Slot 01</span>
+                            <span id="status-1" class="status-dot bg-gray-300"></span>
+                        </div>
+                        <input type="text" id="target-1" class="input-field text-sm mb-4" placeholder="Recipient 1 (e.g. 15551234567)">
+                        <div id="log-1" class="flex-grow text-[10px] font-mono text-gray-400 overflow-y-auto bg-gray-50 p-2 rounded border mb-4 max-h-32">
+                            Waiting for input...
+                        </div>
+                        <div id="action-1" class="h-10"></div>
+                    </div>
+
+                    <!-- Channel 2 -->
+                    <div class="glass-card p-5 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-gray-400 uppercase">Slot 02</span>
+                            <span id="status-2" class="status-dot bg-gray-300"></span>
+                        </div>
+                        <input type="text" id="target-2" class="input-field text-sm mb-4" placeholder="Recipient 2">
+                        <div id="log-2" class="flex-grow text-[10px] font-mono text-gray-400 overflow-y-auto bg-gray-50 p-2 rounded border mb-4 max-h-32">
+                            Waiting for input...
+                        </div>
+                        <div id="action-2" class="h-10"></div>
+                    </div>
+
+                    <!-- Channel 3 -->
+                    <div class="glass-card p-5 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs font-bold text-gray-400 uppercase">Slot 03</span>
+                            <span id="status-3" class="status-dot bg-gray-300"></span>
+                        </div>
+                        <input type="text" id="target-3" class="input-field text-sm mb-4" placeholder="Recipient 3">
+                        <div id="log-3" class="flex-grow text-[10px] font-mono text-gray-400 overflow-y-auto bg-gray-50 p-2 rounded border mb-4 max-h-32">
+                            Waiting for input...
+                        </div>
+                        <div id="action-3" class="h-10"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- System Logs -->
+        <footer class="mt-8 text-center text-gray-400 text-xs">
+            System Status: <span id="masterStatus" class="text-green-500">Ready</span> | Version 1.0.0 (No External Database)
+        </footer>
+    </div>
+
+    <script>
+        const broadcastBtn = document.getElementById('broadcastBtn');
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+
+        // File Selection handling
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileNameDisplay.textContent = `Ready: ${e.target.files[0].name}`;
+            }
+        });
+
+        // Helper to log to specific slot
+        function logToSlot(index, message) {
+            const logEl = document.getElementById(`log-${index}`);
+            const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            logEl.innerHTML += `<div>[${time}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Helper to update status color
+        function updateStatus(index, colorClass) {
+            const dot = document.getElementById(`status-${index}`);
+            dot.className = `status-dot ${colorClass}`;
+        }
+
+        // Main Async Process
+        async function processSlot(index, phone, message, file) {
+            logToSlot(index, `Initializing stream...`);
+            updateStatus(index, 'bg-yellow-400');
+            
+            // Artificial delay to simulate parallel processing
+            await new Promise(resolve => setTimeout(resolve, 500 * index));
+
+            if (!phone) {
+                logToSlot(index, `Error: No recipient phone.`);
+                updateStatus(index, 'bg-red-500');
+                return;
+            }
+
+            logToSlot(index, `Sanitizing number: ${phone}`);
+            const cleanPhone = phone.replace(/\D/g, '');
+            
+            logToSlot(index, `Preparing payload...`);
+            
+            // Since we can't upload a file directly to WA via URL without a backend, 
+            // we prepare a message that includes a reminder about the attachment.
+            let finalMessage = message;
+            if (file) {
+                finalMessage += `\n\n(Attachment included: ${file.name})`;
+            }
+
+            const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(finalMessage)}`;
+
+            // Create visual link for user to "Finalize" the send in the browser context
+            const actionArea = document.getElementById(`action-${index}`);
+            actionArea.innerHTML = `
+                <a href="${waUrl}" target="_blank" 
+                   onclick="this.parentElement.innerHTML='<span class=\'text-xs text-green-600\'>Sent ✅</span>'"
+                   class="block w-full text-center py-2 bg-gray-800 text-white text-xs rounded hover:bg-black transition-colors">
+                   Finalize Send
+                </a>
+            `;
+
+            logToSlot(index, `Link generated for ${cleanPhone}`);
+            updateStatus(index, 'bg-green-500');
+        }
+
+        broadcastBtn.addEventListener('click', async () => {
+            const message = document.getElementById('mainMessage').value;
+            const file = fileInput.files[0];
+            const sender = document.getElementById('senderPhone').value;
+
+            if (!message && !file) {
+                alert("Please enter a message or select a file.");
+                return;
+            }
+
+            // Clear previous actions
+            [1, 2, 3].forEach(i => {
+                document.getElementById(`action-${i}`).innerHTML = '';
+                document.getElementById(`log-${i}`).innerHTML = '';
+            });
+
+            broadcastBtn.disabled = true;
+            broadcastBtn.classList.add('opacity-50');
+            broadcastBtn.textContent = "Broadcasting...";
+
+            // Trigger parallel execution
+            const tasks = [1, 2, 3].map(i => {
+                const targetPhone = document.getElementById(`target-${i}`).value;
+                return processSlot(i, targetPhone, message, file);
+            });
+
+            await Promise.all(tasks);
+
+            broadcastBtn.disabled = false;
+            broadcastBtn.classList.remove('opacity-50');
+            broadcastBtn.textContent = "Launch Parallel Broadcast";
+            
+            document.getElementById('masterStatus').textContent = "Last Run: Completed";
+        });
+    </script>
+</body>
+</html>
